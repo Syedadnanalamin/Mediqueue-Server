@@ -4,7 +4,7 @@ const port = 8080;
 var cors = require('cors')
 const dotenv = require("dotenv");
 dotenv.config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const client = new MongoClient(process.env.MONGO_URI, {
     serverApi: {
         version: ServerApiVersion.v1,
@@ -31,6 +31,28 @@ async function run() {
                 location: 1
             }
             const teachers = await teachersInfo.find().limit(6).project(projectFields).toArray();
+            res.send(teachers);
+
+        });
+        app.get('/tutors', async (req, res) => {
+            const projectFields = {
+
+                name: 1,
+                photo: 1,
+                subject: 1,
+                availableDays: 1,
+                hourlyFee: 1,
+                location: 1
+            }
+            const teachers = await teachersInfo.find().project(projectFields).toArray();
+            res.send(teachers);
+
+        });
+        app.get('/tutors/details/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id)
+
+            const teachers = await teachersInfo.find({ _id: new ObjectId(id) }).toArray();
             res.send(teachers);
 
         });
