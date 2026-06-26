@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const port = 8080;
 var cors = require('cors')
+app.use(express.json());
 const dotenv = require("dotenv");
 dotenv.config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -19,6 +20,7 @@ async function run() {
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
         const db = client.db("Teachers");
         const teachersInfo = db.collection("teachersInfo");
+        const BookedTeachers = db.collection("BookedTeachers");
 
         app.get('/', async (req, res) => {
             const projectFields = {
@@ -50,10 +52,15 @@ async function run() {
         });
         app.get('/tutors/details/:id', async (req, res) => {
             const id = req.params.id;
-            console.log(id)
+
 
             const teachers = await teachersInfo.find({ _id: new ObjectId(id) }).toArray();
             res.send(teachers);
+
+        });
+        app.post('/tutors/details/:id', async (req, res) => {
+            const doc = req.body;
+            const result = await BookedTeachers.insertOne(doc);
 
         });
 
