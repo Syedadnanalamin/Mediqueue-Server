@@ -62,6 +62,8 @@ async function run() {
 
         });
 
+
+
         app.get("/my-booked-sessions/:id", async (req, res) => {
             const UserId = req.params.id;
 
@@ -75,7 +77,7 @@ async function run() {
             }).toArray();
 
             res.send(teacherDetails);
-
+            console.log(teacherDetails);
 
         })
         app.delete("/my-booked-sessions/:id", async (req, res) => {
