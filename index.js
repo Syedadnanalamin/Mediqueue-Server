@@ -77,7 +77,7 @@ async function run() {
             }).toArray();
 
             res.send(teacherDetails);
-            console.log(11);
+
 
         })
         app.delete("/my-booked-sessions/:id", async (req, res) => {
