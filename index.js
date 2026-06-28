@@ -85,18 +85,14 @@ async function run() {
 
 
             const BookedTutorByUser = await BookedTeachers.deleteOne({ tutorId: id });
-
-
-
-
-
+            res.send(BookedTutorByUser);
         })
 
 
         app.post('/tutors/details/:id', async (req, res) => {
             const doc = req.body;
             const result = await BookedTeachers.insertOne(doc);
-
+            res.send(result);
         });
 
 
