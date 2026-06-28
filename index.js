@@ -40,18 +40,34 @@ async function run() {
 
         });
         app.get('/tutors', async (req, res) => {
-            const projectFields = {
+            const { search, startDate, endDate } = req.query;
+            const query = {};
 
+            if (search) {
+                query.name = { $regex: search, $options: 'i' };
+            }
+
+            if (startDate || endDate) {
+                query.sessionStartDate = {};
+                if (startDate) {
+                    query.sessionStartDate.$gte = startDate;
+                }
+                if (endDate) {
+                    query.sessionStartDate.$lte = endDate;
+                }
+            }
+
+            const projectFields = {
                 name: 1,
                 photo: 1,
                 subject: 1,
                 availableDays: 1,
                 hourlyFee: 1,
-                location: 1
+                location: 1,
+                sessionStartDate: 1
             }
-            const teachers = await teachersInfo.find().project(projectFields).toArray();
+            const teachers = await teachersInfo.find(query).project(projectFields).toArray();
             res.send(teachers);
-
         });
         app.get('/tutors/details/:id', async (req, res) => {
             const id = req.params.id;
@@ -90,9 +106,38 @@ async function run() {
 
 
         app.post('/tutors/details/:id', async (req, res) => {
+            const id = req.params.id;
             const doc = req.body;
-            const result = await BookedTeachers.insertOne(doc);
-            res.send(result);
+
+            try {
+                const tutor = await teachersInfo.findOne({ _id: new ObjectId(id) });
+                if (!tutor) {
+                    return res.status(404).send({ error: "Tutor not found" });
+                }
+
+                // Check slot availability
+                let totalSlotNum = Number(tutor.totalSlot);
+                if (isNaN(totalSlotNum) || totalSlotNum <= 0) {
+                    return res.status(400).send({ error: "This session is fully booked. You can't join at the moment." });
+                }
+
+                // System should auto-generate: Book Status
+                doc.status = "Reviewing";
+
+                // Insert booking
+                const result = await BookedTeachers.insertOne(doc);
+
+                // Auto Decrease Slot by 1
+                await teachersInfo.updateOne(
+                    { _id: new ObjectId(id) },
+                    { $set: { totalSlot: totalSlotNum - 1 } }
+                );
+
+                res.send(result);
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ error: "Internal server error" });
+            }
         });
 
 
